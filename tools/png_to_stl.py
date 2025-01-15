@@ -2,7 +2,7 @@ import numpy as np
 from stl import mesh
 from PIL import Image
 
-def png_to_stl(png_path, stl_path="output.stl", height_scale=5.0, baseplate=False):
+def png_to_stl(png_path, stl_path="output.stl", height_scale=5.0, size_scale=0.5, baseplate=False):
     # Load the image and convert to grayscale
     img = Image.open(png_path).convert('L')
     img_data = np.array(img)
@@ -11,20 +11,21 @@ def png_to_stl(png_path, stl_path="output.stl", height_scale=5.0, baseplate=Fals
     vertices = []
     faces = []
     
-    base_thickness = 8.0 if baseplate else 0.0
-    braille_offset = 2.0
+    # Define heights
+    base_thickness = 1.0 if baseplate else 0.0
+    braille_offset = 1.5
     
-    # Generate vertices with adjusted height for baseplate
+    # Generate vertices with adjusted height for baseplate and scaled X/Y
     for x in range(rows):
         for y in range(cols):
             z = (-1 * (img_data[x, y] / 255.0 * height_scale)) + (braille_offset if baseplate else 0.0)
-            vertices.append([x, y, z])
+            vertices.append([x * size_scale, y * size_scale, z])
             
     # Add baseplate vertices
     if baseplate:
         for x in range(rows):
             for y in range(cols):
-                vertices.append([x, y, -base_thickness])
+                vertices.append([x * size_scale, y * size_scale, -base_thickness])
     
     vertices = np.array(vertices)
     vertex_count = rows * cols
@@ -68,9 +69,9 @@ def png_to_stl(png_path, stl_path="output.stl", height_scale=5.0, baseplate=Fals
         for j in range(3):
             my_mesh.vectors[i][j] = vertices[f[j], :]
     
-    # Save the STL file
     my_mesh.save(stl_path)
-    print(f"STL file saved to {stl_path}")
     return stl_path
+
+
 
 
