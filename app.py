@@ -22,7 +22,7 @@ def generate():
         stl_name = os.path.join('outputs', f"{text}.stl")
         
         png_file = text_to_png(text, png_name)
-        stl_file = png_to_stl(png_file, stl_name, baseplate=baseplate)
+        stl_file = png_to_stl(png_file, stl_name, height_scale=2.0, baseplate=baseplate)
         return jsonify({'stl_path': os.path.basename(stl_file)})
     return jsonify({'error': 'No text provided'}), 400
 

@@ -11,20 +11,23 @@ def png_to_stl(png_path, stl_path="output.stl", height_scale=5.0, baseplate=Fals
     vertices = []
     faces = []
     
-    # Generate vertices
+    base_thickness = 8.0 if baseplate else 0.0
+    braille_offset = 2.0
+    
+    # Generate vertices with adjusted height for baseplate
     for x in range(rows):
         for y in range(cols):
-            z = -1 * (img_data[x, y] / 255.0 * height_scale)
+            z = (-1 * (img_data[x, y] / 255.0 * height_scale)) + (braille_offset if baseplate else 0.0)
             vertices.append([x, y, z])
             
-    # Add baseplate vertices here
+    # Add baseplate vertices
     if baseplate:
-        base_height = 1.0  # 1mm thick baseplate
         for x in range(rows):
             for y in range(cols):
-                vertices.append([x, y, base_height])
+                vertices.append([x, y, -base_thickness])
     
     vertices = np.array(vertices)
+    vertex_count = rows * cols
     
     # Generate faces with correct orientation
     for x in range(rows - 1):
@@ -33,9 +36,29 @@ def png_to_stl(png_path, stl_path="output.stl", height_scale=5.0, baseplate=Fals
             v2 = v1 + 1
             v3 = (x + 1) * cols + y
             v4 = v3 + 1
-            # Reversed triangle orientation
+            
+            # Top surface triangles
             faces.append([v1, v3, v2])
             faces.append([v2, v3, v4])
+            
+            if baseplate:
+                # Base surface triangles
+                b1 = v1 + vertex_count
+                b2 = v2 + vertex_count
+                b3 = v3 + vertex_count
+                b4 = v4 + vertex_count
+                faces.append([b1, b2, b3])
+                faces.append([b2, b4, b3])
+                
+                # Side walls
+                faces.append([v1, v2, b1])
+                faces.append([b1, v2, b2])
+                faces.append([v2, v4, b2])
+                faces.append([b2, v4, b4])
+                faces.append([v3, v1, b3])
+                faces.append([b3, v1, b1])
+                faces.append([v4, v3, b4])
+                faces.append([b4, v3, b3])
     
     faces = np.array(faces)
     
@@ -49,3 +72,5 @@ def png_to_stl(png_path, stl_path="output.stl", height_scale=5.0, baseplate=Fals
     my_mesh.save(stl_path)
     print(f"STL file saved to {stl_path}")
     return stl_path
+
+
