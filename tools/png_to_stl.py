@@ -1,77 +1,59 @@
 import numpy as np
-from stl import mesh
 from PIL import Image
+import cadquery as cq
 
 def png_to_stl(png_path, stl_path="output.stl", height_scale=5.0, size_scale=0.5, baseplate=False):
-    # Load the image and convert to grayscale
+    print("Starting STL generation...")
+    
+    # Load and process image
     img = Image.open(png_path).convert('L')
     img_data = np.array(img)
-    
     rows, cols = img_data.shape
-    vertices = []
-    faces = []
     
-    # Define heights
-    base_thickness = 1.0 if baseplate else 0.0
-    braille_offset = 1.5
+    # Find actual dot centers
+    dot_positions = []
+    threshold = 128
     
-    # Generate vertices with adjusted height for baseplate and scaled X/Y
-    for x in range(rows):
-        for y in range(cols):
-            z = (-1 * (img_data[x, y] / 255.0 * height_scale)) + (braille_offset if baseplate else 0.0)
-            vertices.append([x * size_scale, y * size_scale, z])
-            
-    # Add baseplate vertices
+    # Use connected components to find dot centers
+    from scipy import ndimage
+    labeled_array, num_features = ndimage.label(img_data < threshold)
+    
+    for feature_idx in range(1, num_features + 1):
+        y, x = np.where(labeled_array == feature_idx)
+        if len(x) > 0 and len(y) > 0:
+            # Swap x and y here
+            center_x = np.mean(y) * size_scale
+            center_y = np.mean(x) * size_scale
+            dot_positions.append((center_x, center_y))
+    
+    print(f"Found {len(dot_positions)} braille dots")
+    
+    # Create base workplane
+    result = cq.Workplane("XY")
+    
+    # Add baseplate if requested
     if baseplate:
-        for x in range(rows):
-            for y in range(cols):
-                vertices.append([x * size_scale, y * size_scale, -base_thickness])
+        print("Adding baseplate...")
+        plate_width = rows * size_scale
+        plate_length = cols * size_scale
+        plate_height = 1.0  # Keep 1mm thick
+        result = result.box(plate_width, plate_length, plate_height, centered=False)
     
-    vertices = np.array(vertices)
-    vertex_count = rows * cols
+    # Add dots at detected positions with larger size
+    dot_height = 3.0  
+    dot_radius = size_scale * 4
+    base_z = 2.0 if baseplate else 0.0  # Changed to start at 2.0
+
     
-    # Generate faces with correct orientation
-    for x in range(rows - 1):
-        for y in range(cols - 1):
-            v1 = x * cols + y
-            v2 = v1 + 1
-            v3 = (x + 1) * cols + y
-            v4 = v3 + 1
-            
-            # Top surface triangles
-            faces.append([v1, v3, v2])
-            faces.append([v2, v3, v4])
-            
-            if baseplate:
-                # Base surface triangles
-                b1 = v1 + vertex_count
-                b2 = v2 + vertex_count
-                b3 = v3 + vertex_count
-                b4 = v4 + vertex_count
-                faces.append([b1, b2, b3])
-                faces.append([b2, b4, b3])
-                
-                # Side walls
-                faces.append([v1, v2, b1])
-                faces.append([b1, v2, b2])
-                faces.append([v2, v4, b2])
-                faces.append([b2, v4, b4])
-                faces.append([v3, v1, b3])
-                faces.append([b3, v1, b1])
-                faces.append([v4, v3, b4])
-                faces.append([b4, v3, b3])
+    print("Creating braille dots...")
+    for x, y in dot_positions:
+        dot = (cq.Workplane("XY")
+              .transformed(offset=(x, y, base_z))
+              .cylinder(dot_height, dot_radius))
+        result = result.union(dot)
     
-    faces = np.array(faces)
+    print(f"Exporting to {stl_path}")
+    cq.exporters.export(result, stl_path)
     
-    # Create STL mesh
-    my_mesh = mesh.Mesh(np.zeros(faces.shape[0], dtype=mesh.Mesh.dtype))
-    for i, f in enumerate(faces):
-        for j in range(3):
-            my_mesh.vectors[i][j] = vertices[f[j], :]
-    
-    my_mesh.save(stl_path)
+    print("STL generation complete!")
     return stl_path
-
-
-
-

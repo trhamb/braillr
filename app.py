@@ -14,17 +14,22 @@ if not os.path.exists('outputs'):
 
 @app.route('/generate', methods=['POST'])
 def generate():
-    text = request.form.get('text')
-    baseplate = request.form.get('baseplate') == 'true'
-    
-    if text:
-        png_name = os.path.join('outputs', f"{text}.png")
-        stl_name = os.path.join('outputs', f"{text}.stl")
+    try:
+        text = request.form.get('text')
+        baseplate = request.form.get('baseplate') == 'true'
         
-        png_file = text_to_png(text, png_name)
-        stl_file = png_to_stl(png_file, stl_name, height_scale=5.0, size_scale=0.5, baseplate=baseplate)
-        return jsonify({'stl_path': os.path.basename(stl_file)})
-    return jsonify({'error': 'No text provided'}), 400
+        if text:
+            png_name = os.path.join('outputs', f"{text}.png")
+            stl_name = os.path.join('outputs', f"{text}.stl")
+            
+            png_file = text_to_png(text, png_name)
+            stl_file = png_to_stl(png_file, stl_name, height_scale=5.0, size_scale=0.5, baseplate=baseplate)
+            return jsonify({'stl_path': os.path.basename(stl_file)})
+        return jsonify({'error': 'No text provided'}), 400
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
 
 @app.route('/download/<filename>')
 def download(filename):
