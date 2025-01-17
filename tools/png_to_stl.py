@@ -40,9 +40,9 @@ def png_to_stl(png_path, stl_path="output.stl", height_scale=5.0, size_scale=0.5
         result = result.box(plate_width, plate_length, plate_height, centered=False)
     
     # Add dots at detected positions with larger size
-    dot_height = 3.0  
-    dot_radius = size_scale * 4
-    base_z = 2.0 if baseplate else 0.0  # Changed to start at 2.0
+    dot_height = 0.6 
+    dot_radius = 0.75
+    base_z = 0 if not baseplate else 0.2  # Changed to start at 2.0
 
     
     print("Creating braille dots...")
