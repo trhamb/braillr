@@ -58,12 +58,25 @@
             #downloadBtn {
                 display: block;
             }
+            button.processing {
+                background-color: #8ed891; /* lighter shade of green */
+                cursor: wait;
+            }
+            .checkbox-wrapper label {
+                font-size: 18px;
+            }
+            #generate-btn {
+                margin-top: 5px;
+            }
         </style>
     </head>
     <body>
         <div class="container">
             <h1>Braillr</h1>
-            <p>Convert text to 3D printable Braille STL files</p>
+            <p>
+                Convert text to Braille STL files for use in 3D
+                Printing/Modelling
+            </p>
             <div class="controls">
                 <input
                     type="text"
@@ -78,7 +91,9 @@
                     />
                     <label for="baseplateOption">Add baseplate</label>
                 </div>
-                <button onclick="generateSTL()">Generate</button>
+                <button id="generate-btn" onclick="generateSTL()">
+                    Generate
+                </button>
                 <button id="downloadBtn" onclick="downloadSTL()" disabled>
                     Download STL
                 </button>
@@ -132,6 +147,13 @@
             }
 
             function generateSTL() {
+                const generateButton = document.querySelector(
+                    'button[onclick="generateSTL()"]'
+                );
+                generateButton.classList.add("processing");
+                generateButton.textContent = "Processing...";
+                generateButton.disabled = true;
+
                 const text = document.getElementById("textInput").value;
                 const baseplate =
                     document.getElementById("baseplateOption").checked;
@@ -148,6 +170,17 @@
                         currentSTL = data.stl_path;
                         loadSTL(currentSTL);
                         document.getElementById("downloadBtn").disabled = false;
+                        // Reset the generate button
+                        generateButton.classList.remove("processing");
+                        generateButton.textContent = "Generate";
+                        generateButton.disabled = false;
+                    })
+                    .catch((error) => {
+                        // Reset the generate button on error too
+                        generateButton.classList.remove("processing");
+                        generateButton.textContent = "Generate";
+                        generateButton.disabled = false;
+                        console.error("Error:", error);
                     });
             }
 
