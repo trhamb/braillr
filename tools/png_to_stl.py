@@ -41,7 +41,7 @@ def png_to_stl(png_path, stl_path="output.stl", height_scale=5.0, size_scale=0.5
     
     # Add dots at detected positions with larger size
     dot_height = 0.6 
-    dot_radius = 0.75
+    dot_radius = 0.375
     base_z = 0 if not baseplate else 1.0  # Changed to start at 2.0
 
     
