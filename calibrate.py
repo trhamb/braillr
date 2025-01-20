@@ -37,7 +37,8 @@ def measure_dot_spacing(png_path):
 
 def run_calibration():
     test_text = "⠿⠿"  # Two full braille cells
-    test_sizes = range(20, 36, 2)  # Test font sizes from 20 to 34
+    test_sizes = [17]  # Test only font size 17
+    size_scale = 0.5
     
     if not os.path.exists('calibration'):
         os.makedirs('calibration')
@@ -53,10 +54,10 @@ def run_calibration():
         
         # Generate test pattern
         text_to_png(test_text, png_path, font_size=size)
-        png_to_stl(png_path, stl_path, size_scale=1.0)
+        png_to_stl(png_path, stl_path, size_scale=size_scale)
         
         # Measure spacing
-        spacing = measure_dot_spacing(png_path) * 1.0  # Convert to mm
+        spacing = measure_dot_spacing(png_path) * size_scale
         print(f"{size:^9} | {spacing:.2f}mm")
 
 if __name__ == "__main__":

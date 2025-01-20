@@ -36,13 +36,13 @@ def png_to_stl(png_path, stl_path="output.stl", height_scale=5.0, size_scale=0.5
         print("Adding baseplate...")
         plate_width = rows * size_scale
         plate_length = cols * size_scale
-        plate_height = 1.0  # Keep 1mm thick
+        plate_height = 0.8  # Keep 1mm thick
         result = result.box(plate_width, plate_length, plate_height, centered=False)
     
     # Add dots at detected positions with larger size
     dot_height = 0.6 
     dot_radius = 0.75
-    base_z = 0 if not baseplate else 0.2  # Changed to start at 2.0
+    base_z = 0 if not baseplate else 1.0  # Changed to start at 2.0
 
     
     print("Creating braille dots...")

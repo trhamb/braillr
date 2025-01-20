@@ -1,6 +1,6 @@
 from PIL import Image, ImageDraw, ImageFont
 
-def text_to_png(text, output_file="output.png", font_size=22):
+def text_to_png(text, output_file="output.png", font_size=17):
     # Get text size first
     temp_img = Image.new('RGB', (1, 1), "white")
     temp_draw = ImageDraw.Draw(temp_img)
