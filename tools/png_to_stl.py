@@ -36,7 +36,7 @@ def png_to_stl(png_path, stl_path="output.stl", height_scale=5.0, size_scale=0.5
         print("Adding baseplate...")
         plate_width = rows * size_scale
         plate_length = cols * size_scale
-        plate_height = 0.8  # Keep 1mm thick
+        plate_height = 0.8  # Keep 0.8mm thick
         result = result.box(plate_width, plate_length, plate_height, centered=False)
     
     # Add dots at detected positions with larger size
